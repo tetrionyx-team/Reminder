@@ -1948,8 +1948,8 @@ video.corrected {
 /* Interactive Companion In-Page Real Video Overlay */
 .web-companion-popup {
   position: fixed;
-  bottom: 0;
-  right: 12px;
+  bottom: 12px;
+  right: 28px;
   z-index: 99999;
   display: flex;
   flex-direction: column;
@@ -1982,6 +1982,7 @@ video.corrected {
   align-items: center;
   text-align: center;
   gap: 10px;
+  min-width: 240px;
   max-width: 320px;
   animation: floatBubble 2.5s ease-in-out infinite alternate;
 }
@@ -2045,19 +2046,21 @@ video.corrected {
 
 .web-companion-video-wrap {
   position: relative;
-  width: 480px;
-  height: 270px;
+  width: 260px;
+  height: 330px;
   display: flex;
   align-items: flex-end;
   justify-content: center;
   pointer-events: none;
+  overflow: hidden;
 }
 
 .web-companion-video {
-  width: 480px;
-  height: 270px;
-  max-width: 90vw;
-  object-fit: contain;
+  height: 330px;
+  width: auto;
+  max-width: none;
+  position: absolute;
+  bottom: 0;
   display: block;
   background: transparent;
   filter: drop-shadow(0 12px 28px rgba(0, 0, 0, 0.5));
@@ -2071,20 +2074,32 @@ video.corrected {
 }
 
 .animate-popup-in {
-  animation: slideInPop 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  animation: slideInFromRight 0.65s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
 .animate-popup-out {
-  animation: slideOutPop 0.4s ease-in forwards;
+  animation: slideOutToRight 0.5s cubic-bezier(0.6, -0.28, 0.735, 0.045) forwards;
 }
 
-@keyframes slideInPop {
-  from { opacity: 0; transform: translateY(30px); }
-  to { opacity: 1; transform: translateY(0); }
+@keyframes slideInFromRight {
+  from {
+    opacity: 0;
+    transform: translateX(calc(100% + 40px));
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
 }
 
-@keyframes slideOutPop {
-  from { opacity: 1; transform: translateY(0); }
-  to { opacity: 0; transform: translateY(30px); }
+@keyframes slideOutToRight {
+  from {
+    opacity: 1;
+    transform: translateX(0);
+  }
+  to {
+    opacity: 0;
+    transform: translateX(calc(100% + 40px));
+  }
 }
 

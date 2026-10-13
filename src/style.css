@@ -1944,3 +1944,125 @@ video.corrected {
 .btn-lock-setup {
   margin-left: auto;
 }
+
+/* Interactive Companion In-Page Test Preview */
+.web-companion-popup {
+  position: fixed;
+  bottom: 24px;
+  right: 28px;
+  z-index: 99999;
+  display: flex;
+  align-items: flex-end;
+  gap: 16px;
+  pointer-events: auto;
+}
+
+.web-companion-bubble {
+  background: #ffffff;
+  border-radius: 16px;
+  padding: 14px 18px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.45), 0 0 0 2px rgba(37, 99, 235, 0.3);
+  color: #0f172a;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  max-width: 280px;
+  animation: floatBubble 2.5s ease-in-out infinite alternate;
+}
+
+@keyframes floatBubble {
+  from { transform: translateY(0); }
+  to { transform: translateY(-4px); }
+}
+
+.web-bubble-text {
+  font-size: 13.5px;
+  font-weight: 700;
+  line-height: 1.35;
+  color: #0f172a;
+}
+
+.web-bubble-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.btn-web-bubble-yes {
+  background: linear-gradient(135deg, #2563eb, #1d4ed8);
+  color: #ffffff;
+  border: none;
+  border-radius: 10px;
+  padding: 6px 14px;
+  font-size: 12px;
+  font-weight: 800;
+  cursor: pointer;
+  box-shadow: 0 2px 8px rgba(37, 99, 235, 0.4);
+  transition: all 0.15s;
+}
+
+.btn-web-bubble-yes:hover {
+  background: #1e40af;
+  transform: scale(1.04);
+}
+
+.btn-web-bubble-snooze {
+  background: #f1f5f9;
+  color: #64748b;
+  border: 1px solid #cbd5e1;
+  border-radius: 10px;
+  padding: 6px 12px;
+  font-size: 11.5px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.btn-web-bubble-snooze:hover {
+  background: #e2e8f0;
+  color: #0f172a;
+}
+
+.web-companion-avatar-wrap {
+  width: 90px;
+  height: 90px;
+  border-radius: 50%;
+  background: radial-gradient(circle at center, rgba(37, 99, 235, 0.4) 0%, rgba(10, 19, 38, 0.9) 70%);
+  border: 2.5px solid #00d4ff;
+  box-shadow: 0 0 24px rgba(0, 212, 255, 0.55), 0 8px 20px rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  animation: pulseAvatar 2s infinite ease-in-out;
+}
+
+@keyframes pulseAvatar {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.05); }
+}
+
+.web-companion-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: top center;
+}
+
+.animate-popup-in {
+  animation: slideInPop 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.animate-popup-out {
+  animation: slideOutPop 0.35s ease-in forwards;
+}
+
+@keyframes slideInPop {
+  from { opacity: 0; transform: translateY(24px) scale(0.92); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+@keyframes slideOutPop {
+  from { opacity: 1; transform: translateY(0) scale(1); }
+  to { opacity: 0; transform: translateY(24px) scale(0.92); }
+}
+

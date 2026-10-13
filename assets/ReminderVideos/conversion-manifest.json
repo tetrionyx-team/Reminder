@@ -1,0 +1,74 @@
+[
+  {
+    "character": "Character2",
+    "role": "entry",
+    "sourceBytes": 2835790,
+    "outputBytes": 1229643
+  },
+  {
+    "character": "Character2",
+    "role": "success-out",
+    "sourceBytes": 4198757,
+    "outputBytes": 1599215
+  },
+  {
+    "character": "Character2",
+    "role": "disappointed-out",
+    "sourceBytes": 6393407,
+    "outputBytes": 2090762
+  },
+  {
+    "character": "Character3",
+    "role": "entry",
+    "sourceBytes": 4376829,
+    "outputBytes": 1674147
+  },
+  {
+    "character": "Character3",
+    "role": "success-out",
+    "sourceBytes": 4349289,
+    "outputBytes": 1903287
+  },
+  {
+    "character": "Character3",
+    "role": "disappointed-out",
+    "sourceBytes": 10301658,
+    "outputBytes": 3461509
+  },
+  {
+    "character": "Character4",
+    "role": "entry",
+    "sourceBytes": 5188596,
+    "outputBytes": 2544459
+  },
+  {
+    "character": "Character4",
+    "role": "success-out",
+    "sourceBytes": 3665688,
+    "outputBytes": 1950041
+  },
+  {
+    "character": "Character4",
+    "role": "disappointed-out",
+    "sourceBytes": 6191569,
+    "outputBytes": 2807050
+  },
+  {
+    "character": "Character5",
+    "role": "entry",
+    "sourceBytes": 2149442,
+    "outputBytes": 882776
+  },
+  {
+    "character": "Character5",
+    "role": "success-out",
+    "sourceBytes": 5544894,
+    "outputBytes": 2233997
+  },
+  {
+    "character": "Character5",
+    "role": "disappointed-out",
+    "sourceBytes": 6539597,
+    "outputBytes": 1986046
+  }
+]

@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Vara — Your 3D Companion</title>
+  <link rel="icon" type="image/png" href="assets/icon.png">
+  <link rel="manifest" href="manifest.json">
+  <meta http-equiv="refresh" content="0; url=src/control.html">
+  <style>
+    body {
+      margin: 0;
+      background: #0a0f1d;
+      color: #93c5fd;
+      font-family: system-ui, -apple-system, sans-serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      text-align: center;
+    }
+    .loader {
+      width: 44px;
+      height: 44px;
+      border: 3px solid rgba(59, 130, 246, 0.2);
+      border-top-color: #3b82f6;
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+      margin-bottom: 16px;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+  </style>
+</head>
+<body>
+  <div class="loader"></div>
+  <h2>Loading Vara 3D Companion…</h2>
+  <script>
+    window.location.replace('src/control.html' + window.location.search + window.location.hash);
+  </script>
+</body>
+</html>

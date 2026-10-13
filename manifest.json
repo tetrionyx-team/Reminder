@@ -1,0 +1,19 @@
+{
+  "name": "Vara - 3D Companion",
+  "short_name": "Vara",
+  "description": "Your 3D Desktop Companion & Smart Reminder",
+  "start_url": "./src/control.html",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#0a0f1d",
+  "theme_color": "#2563eb",
+  "icons": [
+    {
+      "src": "assets/icon.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}

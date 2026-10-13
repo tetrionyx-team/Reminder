@@ -1,0 +1,333 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self' data: blob:; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; media-src 'self' blob:; connect-src 'self' data: blob:;">
+  <title>Vara — Your 3D Companion</title>
+  <link rel="icon" type="image/png" href="../assets/icon.png">
+  <link rel="manifest" href="../manifest.json">
+  <link rel="stylesheet" href="style.css">
+  <script type="importmap">
+  {
+    "imports": {
+      "three": "../node_modules/three/build/three.module.js",
+      "three/addons/": "../node_modules/three/examples/jsm/"
+    }
+  }
+  </script>
+</head>
+<body class="control">
+  <div class="app-window">
+
+    <!-- ==================== SCREEN 1: WELCOME / SHOWCASE ==================== -->
+    <div id="screenWelcome" class="view-screen screen-welcome active">
+      <div class="welcome-container welcome-centered">
+        
+        <!-- Top Header: Brand & Hero Title -->
+        <header class="welcome-top-header">
+          <div class="app-brand">
+            <div class="brand-icon">
+              <svg viewBox="0 0 24 24" class="paw-svg"><path fill="currentColor" d="M12 11c1.66 0 3-1.34 3-3s-1.34-3-3-3-3 1.34-3 3 1.34 3 3 3zm-5.5 1c1.38 0 2.5-1.12 2.5-2.5S7.88 7 6.5 7 4 8.12 4 9.5 5.12 12 6.5 12zm11 0c1.38 0 2.5-1.12 2.5-2.5S18.88 7 17.5 7 15 8.12 15 9.5s1.12 2.5 2.5 2.5zM12 13c-3.1 0-5.5 2.05-5.5 4.5 0 2.22 1.95 3.5 5.5 3.5s5.5-1.28 5.5-3.5c0-2.45-2.4-4.5-5.5-4.5z"/></svg>
+            </div>
+            <div class="brand-text">
+              <span class="brand-title">Vara</span>
+              <span class="brand-subtitle">Your 3D Companion</span>
+            </div>
+          </div>
+          <div class="welcome-header-title">
+            <h1 class="hero-title-inline">Meet Your <span class="hero-highlight">Companion</span></h1>
+          </div>
+          <div class="welcome-header-badge">
+            <span class="badge-pill" id="badgeAppMode">✨ Interactive 3D</span>
+            <button type="button" class="btn-web-download" id="btnDownloadApp" style="display:none" title="Download Vara Desktop Application">
+              <svg viewBox="0 0 24 24" width="13" height="13" fill="currentColor"><path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/></svg>
+              <span>Download App</span>
+            </button>
+          </div>
+        </header>
+
+        <!-- Center: 3D Stage on Neon Pedestal -->
+        <main class="welcome-center-stage">
+          <div class="stage-container" id="previewStage" tabindex="0" role="region" aria-label="3D Character Preview">
+            <canvas id="threeCanvas"></canvas>
+
+            <!-- Top-Right Corner Test Button -->
+            <button type="button" class="stage-test-btn" id="btnTestCharacter" title="Test this 3D companion popup">
+              <span class="test-play-icon">▶</span> Test
+            </button>
+
+            <!-- Navigation Chevrons: Visible on hover -->
+            <button type="button" class="char-nav-btn prev" id="btnPrevChar" title="Previous Character" aria-label="Previous Character">
+              <svg viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" d="M15 18l-6-6 6-6"/></svg>
+            </button>
+            <button type="button" class="char-nav-btn next" id="btnNextChar" title="Next Character" aria-label="Next Character">
+              <svg viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" d="M9 18l6-6-6-6"/></svg>
+            </button>
+
+            <div class="stage-3d" id="stage3d" style="display:none">
+              <div class="pedestal"><div class="pedestal-ring"></div><div class="pedestal-disc"></div></div>
+              <div class="char-shadow" id="charShadow"></div>
+              <div class="model-wrapper" id="modelWrapper">
+                <div class="model-face model-front"><img id="preview" alt="Selected character preview" draggable="false"><div class="lighting-overlay front-light" id="frontLight"></div></div>
+                <div class="model-face model-back"><img id="previewBack" alt="" draggable="false"><div class="lighting-overlay back-light" id="backLight"></div></div>
+              </div>
+            </div>
+
+            <div class="preview-controls">
+              <button type="button" class="view-btn" id="btnAutoSpin" title="Toggle Auto Spin">⟳ Auto Spin</button>
+              <span class="preview-hint" id="previewHint">🎮 3D Companion · Drag to Rotate</span>
+              <button type="button" class="view-btn" id="btnResetView" title="Reset angle">↺ Reset</button>
+            </div>
+          </div>
+        </main>
+
+        <!-- Bottom Footer: Next CTA -->
+        <footer class="welcome-bottom-footer">
+          <div class="welcome-cta">
+            <button id="btnNext" class="btn-primary-glow btn-pill-large">Next</button>
+            <span class="cta-caption">Set up your reminders</span>
+          </div>
+        </footer>
+
+      </div>
+    </div>
+
+    <!-- ==================== SCREEN 2: SETUP & SETTINGS ==================== -->
+    <div id="screenSetup" class="view-screen screen-setup">
+      <!-- Main Setup Title Row -->
+      <div class="setup-title-row">
+        <button id="btnTopBack" class="icon-circle-btn title-back-btn" title="Back to Welcome" aria-label="Go back to Welcome screen">
+          <svg viewBox="0 0 24 24"><path fill="currentColor" d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/></svg>
+        </button>
+        <div class="setup-title-text">
+          <h2>Set Up Your Reminders</h2>
+          <p>Customize your reminder experience to keep you motivated.</p>
+        </div>
+      </div>
+
+      <!-- Live Status Banner Card -->
+      <section class="status-card" aria-live="polite">
+        <div class="status-left">
+          <span class="status-pulse-dot"></span>
+          <div class="status-info">
+            <strong id="status">Reminders are active</strong>
+            <p id="countdown">Next reminder in 44m 40s</p>
+          </div>
+        </div>
+        <div class="status-actions" role="group" aria-label="Reminder actions">
+          <button id="pause" class="btn-action-outline">⏸ Pause reminders</button>
+          <button id="quit" class="btn-action-outline">
+            <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M18 6L6 18M6 6l12 12"/></svg>
+            Quit Vara
+          </button>
+        </div>
+      </section>
+
+      <!-- Shortcuts & Desktop Launcher Banner -->
+      <div class="shortcuts-guide-bar">
+        <div class="shortcuts-guide-left">
+          <div class="shortcut-item" title="Press Ctrl+Shift+V anywhere to toggle/view this window">
+            <kbd class="shortcut-tag">Ctrl + Shift + V</kbd>
+            <span class="shortcut-desc">Vara Window</span>
+          </div>
+          <span class="shortcut-sep">•</span>
+          <div class="shortcut-item" title="Press Ctrl+Shift+Space anywhere to view 3D companion immediately">
+            <kbd class="shortcut-tag">Ctrl + Shift + Space</kbd>
+            <span class="shortcut-desc">3D Companion</span>
+          </div>
+          <span class="shortcut-sep">•</span>
+          <div class="shortcut-item" title="Windows shortcut key to launch companion">
+            <kbd class="shortcut-tag">Ctrl + Alt + V</kbd>
+            <span class="shortcut-desc">Desktop Launch</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Choose Your Character Section -->
+      <section class="section-choose-character">
+        <h3 class="section-heading">Choose Your Character</h3>
+        <div class="characters-grid" role="group" aria-label="Character Selection">
+          
+          <button type="button" class="char-card" data-character="character1">
+            <div class="char-thumb-wrap">
+              <img src="../assets/ReminderVideos/PreviewImages/character1.png" alt="Character 1" class="char-thumb">
+              <div class="char-check-badge">✓</div>
+            </div>
+            <span class="char-name">Character 1</span>
+          </button>
+
+          <button type="button" class="char-card" data-character="character2">
+            <div class="char-thumb-wrap">
+              <img src="../assets/ReminderVideos/PreviewImages/character2.png" alt="Character 2" class="char-thumb">
+              <div class="char-check-badge">✓</div>
+            </div>
+            <span class="char-name">Character 2</span>
+          </button>
+
+          <button type="button" class="char-card" data-character="character3">
+            <div class="char-thumb-wrap">
+              <img src="../assets/ReminderVideos/PreviewImages/character3.png" alt="Character 3" class="char-thumb">
+              <div class="char-check-badge">✓</div>
+            </div>
+            <span class="char-name">Character 3</span>
+          </button>
+
+          <button type="button" class="char-card" data-character="character4">
+            <div class="char-thumb-wrap">
+              <img src="../assets/ReminderVideos/PreviewImages/character4.png" alt="Character 4" class="char-thumb">
+              <div class="char-check-badge">✓</div>
+            </div>
+            <span class="char-name">Character 4</span>
+          </button>
+
+          <button type="button" class="char-card" data-character="character5">
+            <div class="char-thumb-wrap">
+              <img src="../assets/ReminderVideos/PreviewImages/character5.png" alt="Character 5" class="char-thumb">
+              <div class="char-check-badge">✓</div>
+            </div>
+            <span class="char-name">Character 5</span>
+          </button>
+
+          <button type="button" class="char-card" data-character="character6">
+            <div class="char-thumb-wrap">
+              <img src="../assets/ReminderVideos/PreviewImages/character6.png" alt="Character 6" class="char-thumb">
+              <div class="char-check-badge">✓</div>
+            </div>
+            <span class="char-name">Character 6</span>
+          </button>
+
+          <button type="button" class="char-card" data-character="character7">
+            <div class="char-thumb-wrap">
+              <img src="../assets/ReminderVideos/PreviewImages/character7.png" alt="Character 7" class="char-thumb">
+              <div class="char-check-badge">✓</div>
+            </div>
+            <span class="char-name">Character 7</span>
+          </button>
+
+          <button type="button" class="char-card" data-character="character8">
+            <div class="char-thumb-wrap">
+              <img src="../assets/ReminderVideos/PreviewImages/character8.png" alt="Character 8" class="char-thumb">
+              <div class="char-check-badge">✓</div>
+            </div>
+            <span class="char-name">Character 8</span>
+          </button>
+
+        </div>
+      </section>
+
+      <!-- Reminders Main Layout: Left Form + Right Saved Reminder Card -->
+      <section class="reminders-split-layout">
+        <!-- LEFT: Settings Form Card -->
+        <div class="split-col-left section-settings-card">
+          <div class="form-title-row">
+            <h3 class="section-heading-dark">Your Reminders</h3>
+            <button type="button" id="btnResetForm" class="btn-form-reset" title="Reset form fields">↺ Reset Form</button>
+          </div>
+          <form id="settings" class="settings-stacked-form">
+            
+            <div class="input-group">
+              <label for="userName">
+                <svg class="input-icon" viewBox="0 0 24 24"><path fill="currentColor" d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>
+                Your name
+              </label>
+              <div class="input-box-wrap">
+                <svg class="box-prefix-icon" viewBox="0 0 24 24"><path fill="currentColor" d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>
+                <input id="userName" maxlength="80" placeholder="e.g. Siva" autocomplete="off">
+              </div>
+            </div>
+
+            <div class="input-group">
+              <label for="cheerMessage">
+                <svg class="input-icon" viewBox="0 0 24 24"><path fill="currentColor" d="M20 2H4c-1.1 0-1.99.9-1.99 2L2 22l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zM6 9h12v2H6V9zm8 5H6v-2h8v2zm4-6H6V6h12v2z"/></svg>
+                Cheer message
+              </label>
+              <div class="input-box-wrap">
+                <input id="cheerMessage" maxlength="120" placeholder="e.g. Drink some water! 💧" autocomplete="off">
+              </div>
+            </div>
+
+            <div class="input-group">
+              <label for="interval">
+                <svg class="input-icon" viewBox="0 0 24 24"><path fill="currentColor" d="M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zM12 20c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8zm.5-13H11v6l5.25 3.15.75-1.23-4.5-2.67z"/></svg>
+                Reminder frequency
+              </label>
+              <div class="select-box-wrap">
+                <select id="interval">
+                  <option value="45">Every 45 minutes</option>
+                  <option value="90">Every 90 minutes</option>
+                  <option value="120">Every 120 minutes</option>
+                  <option value="custom">Custom interval (minutes)</option>
+                  <option value="time">Specific Time (e.g. 11:30 AM)</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="input-group" id="customRow" hidden>
+              <label for="customIntervalMinutes">Every (minutes)</label>
+              <div class="input-box-wrap">
+                <input id="customIntervalMinutes" type="number" min="1" max="1440" placeholder="75">
+              </div>
+            </div>
+
+            <div class="input-group" id="timeRow" hidden>
+              <label for="reminderTime">Time of Day (Current / Scheduled Time)</label>
+              <div class="input-box-wrap">
+                <input id="reminderTime" type="time" class="time-input" value="10:00">
+              </div>
+            </div>
+
+            <div class="idle-compact-row">
+              <label class="custom-check-label">
+                <input id="pauseWhenInactive" type="checkbox">
+                <span class="custom-check-box"></span>
+                <span class="check-text">Pause when idle</span>
+              </label>
+              <div class="idle-mins-wrap" id="idleRow">
+                <span class="idle-mins-label">after</span>
+                <input id="inactivityThresholdMinutes" type="number" min="1" max="120" value="12" class="idle-mins-input">
+                <span class="idle-mins-label">mins</span>
+              </div>
+            </div>
+
+            <div class="autostart-toggle-row">
+              <label class="custom-check-label">
+                <input id="autoStartOnBoot" type="checkbox" checked>
+                <span class="custom-check-box"></span>
+                <span class="check-text">Auto-start when Windows turns on</span>
+              </label>
+            </div>
+
+            <div class="form-actions-row">
+              <button type="button" id="btnAddReminder" class="btn-add-reminder btn-add-full">＋ Add Reminder</button>
+            </div>
+
+            <p id="saveStatus" role="status"></p>
+          </form>
+        </div>
+
+        <!-- RIGHT: Saved Reminders List Card -->
+        <div class="split-col-right section-saved-card" id="savedReminderCard">
+          <div class="saved-card-header">
+            <div class="saved-card-title">
+              <svg class="saved-card-icon" viewBox="0 0 24 24"><path fill="currentColor" d="M12 22c1.1 0 2-.9 2-2h-4c0 1.1.9 2 2 2zm6-6v-5c0-3.07-1.63-5.64-4.5-6.32V4c0-.83-.67-1.5-1.5-1.5s-1.5.67-1.5 1.5v.68C7.64 5.36 6 7.92 6 11v5l-2 2v1h16v-1l-2-2z"/></svg>
+              <span>Saved Reminders (<span id="savedCount">0</span>)</span>
+            </div>
+            <span class="saved-status-badge inactive" id="savedStatusBadge">
+              <span class="saved-status-dot"></span>
+              No Reminders
+            </span>
+          </div>
+
+          <!-- Multiple Saved Reminders Scrollable Container -->
+          <div class="saved-reminders-list" id="savedRemindersList">
+            <!-- Injected by JavaScript -->
+          </div>
+        </div>
+      </section>
+    </div>
+
+  </div>
+
+  <script type="module" src="control.js"></script>
+</body>
+</html>

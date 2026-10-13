@@ -1682,7 +1682,7 @@ input:focus, select:focus {
   cursor: pointer;
 }
 
-video, canvas.media-render {
+.overlay video, .overlay canvas.media-render {
   display: block;
   width: 540px;
   height: 304px;
@@ -1945,73 +1945,94 @@ video.corrected {
   margin-left: auto;
 }
 
-/* Interactive Companion In-Page Test Preview */
+/* Interactive Companion In-Page Real Video Overlay */
 .web-companion-popup {
   position: fixed;
-  bottom: 24px;
-  right: 28px;
+  bottom: 0;
+  right: 12px;
   z-index: 99999;
   display: flex;
-  align-items: flex-end;
-  gap: 16px;
+  flex-direction: column;
+  align-items: center;
+  pointer-events: none;
+}
+
+.web-companion-bubble-wrapper {
+  position: relative;
+  margin-bottom: 6px;
+  opacity: 0;
+  transform: translateY(12px) scale(0.92);
+  transition: all 0.35s cubic-bezier(0.16, 1, 0.3, 1);
   pointer-events: auto;
+}
+
+.web-companion-bubble-wrapper.visible {
+  opacity: 1;
+  transform: translateY(0) scale(1);
 }
 
 .web-companion-bubble {
   background: #ffffff;
-  border-radius: 16px;
-  padding: 14px 18px;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.45), 0 0 0 2px rgba(37, 99, 235, 0.3);
+  border-radius: 18px;
+  padding: 14px 22px;
+  box-shadow: 0 14px 40px rgba(0, 0, 0, 0.55), 0 0 0 2px rgba(37, 99, 235, 0.4);
   color: #0f172a;
   display: flex;
   flex-direction: column;
+  align-items: center;
+  text-align: center;
   gap: 10px;
-  max-width: 280px;
+  max-width: 320px;
   animation: floatBubble 2.5s ease-in-out infinite alternate;
 }
 
-@keyframes floatBubble {
-  from { transform: translateY(0); }
-  to { transform: translateY(-4px); }
+.web-bubble-tip {
+  width: 0;
+  height: 0;
+  border-left: 9px solid transparent;
+  border-right: 9px solid transparent;
+  border-top: 10px solid #ffffff;
+  margin: 0 auto;
+  filter: drop-shadow(0 2px 2px rgba(0, 0, 0, 0.15));
 }
 
 .web-bubble-text {
-  font-size: 13.5px;
+  font-size: 14px;
   font-weight: 700;
-  line-height: 1.35;
+  line-height: 1.4;
   color: #0f172a;
 }
 
 .web-bubble-actions {
   display: flex;
-  gap: 8px;
+  gap: 10px;
 }
 
 .btn-web-bubble-yes {
   background: linear-gradient(135deg, #2563eb, #1d4ed8);
   color: #ffffff;
   border: none;
-  border-radius: 10px;
-  padding: 6px 14px;
-  font-size: 12px;
+  border-radius: 12px;
+  padding: 7px 18px;
+  font-size: 13px;
   font-weight: 800;
   cursor: pointer;
-  box-shadow: 0 2px 8px rgba(37, 99, 235, 0.4);
+  box-shadow: 0 3px 10px rgba(37, 99, 235, 0.45);
   transition: all 0.15s;
 }
 
 .btn-web-bubble-yes:hover {
   background: #1e40af;
-  transform: scale(1.04);
+  transform: scale(1.05);
 }
 
 .btn-web-bubble-snooze {
   background: #f1f5f9;
   color: #64748b;
   border: 1px solid #cbd5e1;
-  border-radius: 10px;
-  padding: 6px 12px;
-  font-size: 11.5px;
+  border-radius: 12px;
+  padding: 7px 14px;
+  font-size: 12px;
   font-weight: 600;
   cursor: pointer;
   transition: all 0.15s;
@@ -2022,47 +2043,48 @@ video.corrected {
   color: #0f172a;
 }
 
-.web-companion-avatar-wrap {
-  width: 90px;
-  height: 90px;
-  border-radius: 50%;
-  background: radial-gradient(circle at center, rgba(37, 99, 235, 0.4) 0%, rgba(10, 19, 38, 0.9) 70%);
-  border: 2.5px solid #00d4ff;
-  box-shadow: 0 0 24px rgba(0, 212, 255, 0.55), 0 8px 20px rgba(0, 0, 0, 0.5);
+.web-companion-video-wrap {
+  position: relative;
+  width: 480px;
+  height: 270px;
   display: flex;
-  align-items: center;
+  align-items: flex-end;
   justify-content: center;
-  overflow: hidden;
-  animation: pulseAvatar 2s infinite ease-in-out;
+  pointer-events: none;
 }
 
-@keyframes pulseAvatar {
-  0%, 100% { transform: scale(1); }
-  50% { transform: scale(1.05); }
+.web-companion-video {
+  width: 480px;
+  height: 270px;
+  max-width: 90vw;
+  object-fit: contain;
+  display: block;
+  background: transparent;
+  filter: drop-shadow(0 12px 28px rgba(0, 0, 0, 0.5));
+  pointer-events: none;
+  visibility: visible !important;
+  opacity: 1 !important;
 }
 
-.web-companion-img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  object-position: top center;
+.web-companion-video.keyed-video {
+  mix-blend-mode: screen;
 }
 
 .animate-popup-in {
-  animation: slideInPop 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  animation: slideInPop 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
 .animate-popup-out {
-  animation: slideOutPop 0.35s ease-in forwards;
+  animation: slideOutPop 0.4s ease-in forwards;
 }
 
 @keyframes slideInPop {
-  from { opacity: 0; transform: translateY(24px) scale(0.92); }
-  to { opacity: 1; transform: translateY(0) scale(1); }
+  from { opacity: 0; transform: translateY(30px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 
 @keyframes slideOutPop {
-  from { opacity: 1; transform: translateY(0) scale(1); }
-  to { opacity: 0; transform: translateY(24px) scale(0.92); }
+  from { opacity: 1; transform: translateY(0); }
+  to { opacity: 0; transform: translateY(30px); }
 }
 

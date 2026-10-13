@@ -44,7 +44,7 @@ function showCompanionPopup(payload) {
   popup.innerHTML = `
     <div class="web-companion-bubble-wrapper" id="webBubbleWrap">
       <div class="web-companion-bubble">
-        <div class="web-bubble-text" id="webBubbleText">Hey ${escapeHtml(name)}!<br>Did you drink water? 💧</div>
+        <div class="web-bubble-text" id="webBubbleText">Hey ${escapeHtml(name)}!<br>Time for a drink of water! 💧</div>
         <div class="web-bubble-actions" id="webBubbleActions">
           <button type="button" class="btn-web-bubble-yes" id="btnWebBubbleYes">YES</button>
           <button type="button" class="btn-web-bubble-snooze" id="btnWebBubbleSnooze">Remind me later</button>
@@ -65,58 +65,27 @@ function showCompanionPopup(payload) {
   const btnYes = popup.querySelector('#btnWebBubbleYes');
   const btnSnooze = popup.querySelector('#btnWebBubbleSnooze');
 
-  const CHAR_RATIOS = {
-    '1': 0.201,
-    '2': 0.113,
-    '3': 0.908,
-    '4': 0.812,
-    '5': 0.500,
-    '6': 0.500,
-    '7': 0.500,
-    '8': 0.378
-  };
-
-  const updateVideoPosition = () => {
-    if (!videoEl) return;
-    const ratio = CHAR_RATIOS[charNum] ?? 0.5;
-    const wrapWidth = 260;
-    const wrapHeight = 330;
-    const aspect = (videoEl.videoWidth && videoEl.videoHeight) ? (videoEl.videoWidth / videoEl.videoHeight) : (16 / 9);
-    const renderedWidth = wrapHeight * aspect;
-    const charCenterX = renderedWidth * ratio;
-    const leftOffset = Math.round((wrapWidth / 2) - charCenterX);
-    videoEl.style.left = `${leftOffset}px`;
-    videoEl.style.width = `${Math.round(renderedWidth)}px`;
-    videoEl.style.height = `${wrapHeight}px`;
-  };
-
-  // Play entry video immediately
+  // Play entry video smoothly
   if (videoEl) {
-    updateVideoPosition();
     videoEl.src = entryVideo;
     videoEl.load();
     videoEl.play().catch(e => console.warn('Autoplay notice:', e));
-    videoEl.addEventListener('loadedmetadata', updateVideoPosition);
-    videoEl.addEventListener('loadeddata', () => {
-      updateVideoPosition();
-      console.log('COMPANION VIDEO LOADED DATA OK');
-    });
     videoEl.addEventListener('ended', () => {
       if (bubbleWrap) bubbleWrap.classList.add('visible');
     });
   }
 
-  // Ensure speech bubble pops up smoothly
+  // Ensure speech bubble pops up after character enters
   setTimeout(() => {
     if (bubbleWrap) bubbleWrap.classList.add('visible');
-  }, 1800);
+  }, 1600);
 
   btnYes.addEventListener('click', (e) => {
     e.stopPropagation();
     bubbleActions.style.display = 'none';
     bubbleText.innerHTML = `<b>${escapeHtml(cheer)}</b>`;
     
-    // Switch to success-out celebration video!
+    // Switch to success-out celebration video
     if (videoEl) {
       videoEl.src = successVideo;
       videoEl.play().catch(() => {});
@@ -138,7 +107,7 @@ function showCompanionPopup(payload) {
     e.stopPropagation();
     bubbleWrap.style.display = 'none';
 
-    // Switch to disappointed-out walk-off video!
+    // Switch to disappointed-out walk-off video
     if (videoEl) {
       videoEl.src = disappointVideo;
       videoEl.play().catch(() => {});
@@ -226,7 +195,7 @@ let settings = {
   reminderTime: '10:00',
   pauseWhenInactive: true,
   inactivityThresholdMinutes: 12,
-  reminderCharacter: 'character2',
+  reminderCharacter: 'character1',
   cheerMessage: '',
   autoStartOnBoot: true,
   reminders: []

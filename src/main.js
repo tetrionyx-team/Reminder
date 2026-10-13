@@ -269,14 +269,11 @@ app.whenReady().then(async () => {
     console.warn('Tray init error:', err);
   }
 
-  // On startup: Select the reminder corresponding to current time and pop it up
+  // On startup: Sync current schedule
   const initialSched = engine.getCurrentSchedule();
   if (initialSched && initialSched.reminder) {
     currentDisplayedReminder = initialSched.reminder;
     currentReminderIndex = initialSched.index;
-    if (!engine.paused && !engine.suspended) {
-      setTimeout(() => { if (!active) present(initialSched.reminder); }, 3000);
-    }
   }
   setInterval(() => {
     if (++idleSample >= 30) { idleSample = 0; engine.setInactive(settings.pauseWhenInactive && powerMonitor.getSystemIdleTime() >= settings.inactivityThresholdMinutes * 60); }

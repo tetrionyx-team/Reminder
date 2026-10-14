@@ -275,6 +275,9 @@ app.whenReady().then(async () => {
     currentDisplayedReminder = initialSched.reminder;
     currentReminderIndex = initialSched.index;
   }
+  if (!engine.paused && !engine.suspended) {
+    setTimeout(() => { if (!active) present(currentDisplayedReminder); }, 2500);
+  }
   setInterval(() => {
     if (++idleSample >= 30) { idleSample = 0; engine.setInactive(settings.pauseWhenInactive && powerMonitor.getSystemIdleTime() >= settings.inactivityThresholdMinutes * 60); }
     engine.tick(); update();

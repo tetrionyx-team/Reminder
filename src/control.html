@@ -126,21 +126,25 @@
       <!-- Shortcuts & Desktop Launcher Banner -->
       <div class="shortcuts-guide-bar">
         <div class="shortcuts-guide-left">
-          <div class="shortcut-item" title="Press Ctrl+Shift+V anywhere to toggle/view this window">
+          <button type="button" class="shortcut-item btn-shortcut-clickable" id="shortcutItemWindow" title="Press Ctrl+Shift+V anywhere to toggle/view this window">
             <kbd class="shortcut-tag">Ctrl + Shift + V</kbd>
             <span class="shortcut-desc">Vara Window</span>
-          </div>
+          </button>
           <span class="shortcut-sep">•</span>
-          <div class="shortcut-item" title="Press Ctrl+Shift+Space anywhere to view 3D companion immediately">
+          <button type="button" class="shortcut-item btn-shortcut-clickable" id="shortcutItemCompanion" title="Press Ctrl+Shift+Space anywhere to view 3D companion immediately">
             <kbd class="shortcut-tag">Ctrl + Shift + Space</kbd>
             <span class="shortcut-desc">3D Companion</span>
-          </div>
+          </button>
           <span class="shortcut-sep">•</span>
-          <div class="shortcut-item" title="Windows shortcut key to launch companion">
+          <button type="button" class="shortcut-item btn-shortcut-clickable" id="shortcutItemDesktop" title="Windows shortcut key to launch companion">
             <kbd class="shortcut-tag">Ctrl + Alt + V</kbd>
             <span class="shortcut-desc">Desktop Launch</span>
-          </div>
+          </button>
         </div>
+        <button type="button" id="btnCreateDesktopShortcut" class="btn-desktop-shortcut-badge" title="Place Vara shortcut directly onto your Windows Desktop">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><line x1="12" y1="8" x2="12" y2="16"></line><line x1="8" y1="12" x2="16" y2="12"></line></svg>
+          <span>Add Desktop Shortcut</span>
+        </button>
       </div>
 
       <!-- Choose Your Character Section -->

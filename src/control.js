@@ -25,104 +25,342 @@ function escapeHtml(str) {
   }[tag] || tag));
 }
 
+const svgNS = 'http://www.w3.org/2000/svg';
+
+async function renderLetteringSvg(containerEl, text, isResponse = false) {
+  try {
+    await document.fonts.load('700 40px "PixelFriend Rounded"');
+  } catch {}
+  const lines = String(text || '').split('\n');
+  const measuring = document.createElement('canvas').getContext('2d');
+  measuring.font = '700 40px "PixelFriend Rounded", "Segoe UI Emoji", sans-serif';
+  const widest = Math.max(...lines.map(line => measuring.measureText(line).width), 1);
+  const fontSize = Math.min(isResponse ? 23.8 : 22.4, 40 * 432 / widest);
+  const lineHeight = fontSize * 1.25;
+  const effectScale = fontSize / 40;
+  const height = Math.ceil(lines.length * lineHeight + 12);
+  const svg = document.createElementNS(svgNS, 'svg');
+  svg.setAttribute('viewBox', `0 0 456 ${height}`);
+  svg.setAttribute('width', '456');
+  svg.setAttribute('height', String(height));
+  svg.setAttribute('aria-hidden', 'true');
+  svg.classList.add('reminder-lettering');
+
+  for (const layer of [
+    { x: 6, y: 7, fill: '#e12e16', stroke: '#e12e16', width: 6 },
+    { x: 3, y: 3, fill: '#f18a0a', stroke: '#f18a0a', width: 5 },
+    { x: -1.5, y: -1.5, fill: '#3b1709', stroke: '#3b1709', width: 3 },
+    { x: 0, y: 0, fill: '#f8d349', stroke: '#f8d349', width: 0 }
+  ]) {
+    lines.forEach((line, index) => {
+      const node = document.createElementNS(svgNS, 'text');
+      node.setAttribute('x', String(228 + layer.x * effectScale));
+      node.setAttribute('y', String(fontSize + index * lineHeight + layer.y * effectScale));
+      node.setAttribute('text-anchor', 'middle');
+      node.setAttribute('font-size', String(fontSize));
+      node.setAttribute('fill', layer.fill);
+      node.setAttribute('stroke', layer.stroke);
+      node.setAttribute('stroke-width', String(layer.width * effectScale));
+      node.setAttribute('stroke-linejoin', 'round');
+      node.setAttribute('paint-order', 'stroke fill');
+      node.textContent = line;
+      svg.appendChild(node);
+    });
+  }
+  containerEl.replaceChildren(svg);
+}
+
 function showCompanionPopup(payload) {
-  const existing = document.getElementById('webCompanionTestPopup');
+  const existing = document.getElementById('webCompanionStage');
   if (existing) existing.remove();
 
-  const char = payload?.character || settings.reminderCharacter || 'character1';
-  const charNum = String(char).replace(/[^0-9]/g, '') || '1';
-  const name = payload?.userName || settings.userName || 'Friend';
-  const cheer = payload?.cheerMessage || settings.cheerMessage || 'Nice! 💙';
+  const selected = payload?.character || settings.reminderCharacter || 'character1';
+  const charNum = String(selected).replace(/[^0-9]/g, '') || '1';
+  const name = (payload?.userName || settings.userName || 'Friend').trim();
+  const cheer = (payload?.cheerMessage || settings.cheerMessage || 'Nice! 💙').trim();
 
-  const entryVideo = `../assets/ReminderVideos/Character${charNum}/entry.webm`;
-  const successVideo = `../assets/ReminderVideos/Character${charNum}/success-out.webm`;
-  const disappointVideo = `../assets/ReminderVideos/Character${charNum}/disappointed-out.webm`;
+  const stage = document.createElement('div');
+  stage.id = 'webCompanionStage';
+  stage.className = 'web-companion-stage';
 
-  const popup = document.createElement('div');
-  popup.id = 'webCompanionTestPopup';
-  popup.className = 'web-companion-popup animate-popup-in';
-  popup.innerHTML = `
-    <div class="web-companion-bubble-wrapper" id="webBubbleWrap">
-      <div class="web-companion-bubble">
-        <div class="web-bubble-text" id="webBubbleText">Hey ${escapeHtml(name)}!<br>Time for a drink of water! 💧</div>
-        <div class="web-bubble-actions" id="webBubbleActions">
-          <button type="button" class="btn-web-bubble-yes" id="btnWebBubbleYes">YES</button>
-          <button type="button" class="btn-web-bubble-snooze" id="btnWebBubbleSnooze">Remind me later</button>
+  const isKeyed = ['character5', 'character7'].includes(selected);
+  const canvasWidth = window.innerWidth;
+  const videoWidth = Math.min(540, canvasWidth);
+  const videoHeight = Math.round(videoWidth * 304 / 540);
+  const isRightSide = ['character3', 'character4'].includes(selected);
+  const originX = isRightSide ? (canvasWidth - videoWidth) : 0;
+  const bottomOffset = selected === 'character8' ? 0 : 20;
+
+  stage.innerHTML = `
+    <div class="web-bubble-container hidden" id="webBubbleContainer" style="width:${Math.min(480, canvasWidth - 20)}px; left:${Math.max(10, Math.min(canvasWidth - 480, originX + videoWidth / 2 - 240))}px; bottom:${bottomOffset + videoHeight + 14}px;">
+      <div class="bubble">
+        <div id="webMessage" class="message" role="status"></div>
+        <div id="webActions" class="actions">
+          <button type="button" id="webDrink">YES</button>
+          <button type="button" id="webSnooze">Remind me later</button>
         </div>
       </div>
-      <div class="web-bubble-tip"></div>
     </div>
-    <div class="web-companion-video-wrap">
-      <video id="webCompVideo" class="web-companion-video ${['5', '7'].includes(charNum) ? 'keyed-video' : ''}" playsinline autoplay muted preload="auto" src="${entryVideo}"></video>
+    <div class="web-char-container" id="webCharContainer" style="left:${originX}px; bottom:${bottomOffset}px; width:${videoWidth}px; height:${videoHeight}px;">
+      <video id="webCompVideo" class="media-comp" muted playsinline preload="auto" style="width:${videoWidth}px; height:${videoHeight}px; display:${isKeyed ? 'none' : 'block'};"></video>
+      <canvas id="webCompCanvas" class="media-render" style="width:${videoWidth}px; height:${videoHeight}px; display:${isKeyed ? 'block' : 'none'};"></canvas>
     </div>
   `;
-  document.body.appendChild(popup);
+  document.body.appendChild(stage);
 
-  const videoEl = popup.querySelector('#webCompVideo');
-  const bubbleWrap = popup.querySelector('#webBubbleWrap');
-  const bubbleText = popup.querySelector('#webBubbleText');
-  const bubbleActions = popup.querySelector('#webBubbleActions');
-  const btnYes = popup.querySelector('#btnWebBubbleYes');
-  const btnSnooze = popup.querySelector('#btnWebBubbleSnooze');
+  const video = stage.querySelector('#webCompVideo');
+  const canvas = stage.querySelector('#webCompCanvas');
+  const bubbleContainer = stage.querySelector('#webBubbleContainer');
+  const webMessage = stage.querySelector('#webMessage');
+  const webActions = stage.querySelector('#webActions');
+  const btnDrink = stage.querySelector('#webDrink');
+  const btnSnooze = stage.querySelector('#webSnooze');
 
-  // Play entry video smoothly
-  if (videoEl) {
-    videoEl.src = entryVideo;
-    videoEl.load();
-    videoEl.play().catch(e => console.warn('Autoplay notice:', e));
-    videoEl.addEventListener('ended', () => {
-      if (bubbleWrap) bubbleWrap.classList.add('visible');
+  let gl = null, glTex = null, glProg = null, renderRaf = null, movement = null;
+  let entryReadySent = false;
+
+  function initWebGL() {
+    if (gl) return true;
+    gl = canvas.getContext('webgl', { alpha: true, premultipliedAlpha: false, preserveDrawingBuffer: true });
+    if (!gl) return false;
+    const vs = 'attribute vec2 a_pos; varying vec2 v_uv; void main() { v_uv = (a_pos + 1.0) * 0.5; v_uv.y = 1.0 - v_uv.y; gl_Position = vec4(a_pos, 0.0, 1.0); }';
+    const fs = [
+      'precision mediump float;',
+      'varying vec2 v_uv;',
+      'uniform sampler2D u_tex;',
+      'void main() {',
+      '  vec4 col = texture2D(u_tex, v_uv);',
+      '  if (v_uv.x > 0.86 && v_uv.y < 0.25) discard;',
+      '  float r = col.r; float g = col.g; float b = col.b;',
+      '  float maxC = max(r, max(g, b));',
+      '  float minC = min(r, min(g, b));',
+      '  float chroma = maxC - minC;',
+      '  if (maxC < 0.015) discard;',
+      '  if (v_uv.y < 0.40 && (v_uv.x < 0.38 || v_uv.x > 0.62)) {',
+      '    if (chroma < 0.08 && maxC < 0.32) discard;',
+      '  }',
+      '  float alpha = smoothstep(0.012, 0.035, maxC);',
+      '  gl_FragColor = vec4(col.rgb, col.a * alpha);',
+      '}'
+    ].join('\n');
+    function createShader(type, src) {
+      const s = gl.createShader(type);
+      gl.shaderSource(s, src);
+      gl.compileShader(s);
+      return s;
+    }
+    glProg = gl.createProgram();
+    gl.attachShader(glProg, createShader(gl.VERTEX_SHADER, vs));
+    gl.attachShader(glProg, createShader(gl.FRAGMENT_SHADER, fs));
+    gl.linkProgram(glProg);
+    gl.useProgram(glProg);
+
+    const buf = gl.createBuffer();
+    gl.bindBuffer(gl.ARRAY_BUFFER, buf);
+    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1, -1, 1, -1, -1, 1, 1, 1]), gl.STATIC_DRAW);
+
+    const aPos = gl.getAttribLocation(glProg, 'a_pos');
+    gl.enableVertexAttribArray(aPos);
+    gl.vertexAttribPointer(aPos, 2, gl.FLOAT, false, 0, 0);
+
+    glTex = gl.createTexture();
+    gl.bindTexture(gl.TEXTURE_2D, glTex);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+    return true;
+  }
+
+  function startRendering() {
+    if (renderRaf) cancelAnimationFrame(renderRaf);
+    if (!initWebGL()) return;
+    canvas.width = video.videoWidth || 1280;
+    canvas.height = video.videoHeight || 720;
+    gl.viewport(0, 0, canvas.width, canvas.height);
+
+    function render() {
+      if (isKeyed && !video.ended) {
+        if (video.readyState >= 2) {
+          gl.clearColor(0, 0, 0, 0);
+          gl.clear(gl.COLOR_BUFFER_BIT);
+          gl.bindTexture(gl.TEXTURE_2D, glTex);
+          gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, video);
+          gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+        }
+        renderRaf = requestAnimationFrame(render);
+      }
+    }
+    renderRaf = requestAnimationFrame(render);
+  }
+
+  function stopRendering() {
+    if (renderRaf) {
+      cancelAnimationFrame(renderRaf);
+      renderRaf = null;
+    }
+  }
+
+  function getActiveElement() {
+    return isKeyed ? canvas : video;
+  }
+
+  function showBubble() {
+    if (entryReadySent) return;
+    entryReadySent = true;
+    renderLetteringSvg(webMessage, `Hey, ${name}\nDid you drink water?`, false);
+    bubbleContainer.classList.remove('hidden');
+    bubbleContainer.classList.add('visible');
+  }
+
+  // Set initial video src
+  video.src = `../assets/ReminderVideos/Character${charNum}/entry.webm`;
+  video.load();
+  video.play().catch(e => console.warn('Video play warning:', e));
+
+  video.addEventListener('loadeddata', () => {
+    if (isKeyed) {
+      startRendering();
+    }
+  });
+
+  // Entry animation for character7 (walk in from -350px)
+  if (selected === 'character7') {
+    const targetEl = getActiveElement();
+    movement = targetEl.animate([
+      { transform: 'translateX(-350px)' },
+      { transform: 'translateX(0px)' }
+    ], {
+      duration: 2300,
+      easing: 'linear',
+      fill: 'forwards'
     });
   }
 
-  // Ensure speech bubble pops up after character enters
-  setTimeout(() => {
-    if (bubbleWrap) bubbleWrap.classList.add('visible');
-  }, 1600);
-
-  btnYes.addEventListener('click', (e) => {
-    e.stopPropagation();
-    bubbleActions.style.display = 'none';
-    bubbleText.innerHTML = `<b>${escapeHtml(cheer)}</b>`;
-    
-    // Switch to success-out celebration video
-    if (videoEl) {
-      videoEl.src = successVideo;
-      videoEl.play().catch(() => {});
-      videoEl.onended = () => {
-        popup.classList.add('animate-popup-out');
-        setTimeout(() => popup.remove(), 400);
-      };
+  video.addEventListener('timeupdate', () => {
+    if (['character5', 'character6'].includes(selected)) {
+      if (video.currentTime >= 3.2 && !entryReadySent) {
+        video.pause();
+        showBubble();
+      }
     }
+  });
+
+  video.addEventListener('ended', () => {
+    showBubble();
+  });
+
+  btnDrink.addEventListener('click', (e) => {
+    e.stopPropagation();
+    btnDrink.disabled = true;
+    btnSnooze.disabled = true;
+    webActions.style.display = 'none';
+    renderLetteringSvg(webMessage, cheer, true);
 
     setTimeout(() => {
-      if (document.body.contains(popup)) {
-        popup.classList.add('animate-popup-out');
-        setTimeout(() => popup.remove(), 400);
-      }
-    }, 4500);
+      bubbleContainer.classList.remove('visible');
+      bubbleContainer.classList.add('hidden');
+
+      // Start success-out
+      video.classList.toggle('corrected', selected === 'character2');
+      video.src = `../assets/ReminderVideos/Character${charNum}/success-out.webm`;
+      video.load();
+      video.play().then(() => {
+        if (selected === 'character7') video.currentTime = 1.2;
+        if (isKeyed) startRendering();
+
+        // Walk off animations on success
+        const destX = canvasWidth + 270 - originX;
+        const targetEl = getActiveElement();
+
+        if (selected === 'character7') {
+          const dur = Math.max(100, (video.duration - 1.2) * 1000);
+          movement = targetEl.animate([
+            { transform: 'translateX(0px)' },
+            { transform: `translateX(${destX}px)` }
+          ], { duration: dur, easing: 'ease-in', fill: 'forwards' });
+        }
+
+        const handleSuccessTimeupdate = () => {
+          if (selected === 'character6' && !movement && video.currentTime >= 1.2) {
+            const dur = Math.max(100, (video.duration - video.currentTime) * 1000);
+            movement = targetEl.animate([
+              { transform: 'translateX(0)' },
+              { transform: `translateX(${destX}px)` }
+            ], { duration: dur, easing: 'ease-in', fill: 'forwards' });
+          } else if (selected === 'character8' && !movement && video.currentTime >= 5.8) {
+            const destLeft = -560 - originX;
+            const dur = Math.max(100, (video.duration - video.currentTime) * 1000);
+            movement = targetEl.animate([
+              { transform: 'translateX(0px)' },
+              { transform: `translateX(${destLeft}px)` }
+            ], { duration: dur, easing: 'linear', fill: 'forwards' });
+          } else if (selected === 'character1' && !movement && video.currentTime >= 2.1) {
+            const dur = Math.max(100, (video.duration - video.currentTime) * 1000);
+            movement = targetEl.animate([
+              { transform: 'translateX(0)' },
+              { transform: `translateX(${destX}px)` }
+            ], { duration: dur, easing: 'ease-in', fill: 'forwards' });
+          }
+        };
+
+        video.addEventListener('timeupdate', handleSuccessTimeupdate);
+
+        video.onended = async () => {
+          stopRendering();
+          if (movement) await movement.finished.catch(() => {});
+          stage.remove();
+        };
+      }).catch(() => stage.remove());
+    }, 1200);
   });
 
   btnSnooze.addEventListener('click', (e) => {
     e.stopPropagation();
-    bubbleWrap.style.display = 'none';
+    btnDrink.disabled = true;
+    btnSnooze.disabled = true;
+    bubbleContainer.classList.remove('visible');
+    bubbleContainer.classList.add('hidden');
 
-    // Switch to disappointed-out walk-off video
-    if (videoEl) {
-      videoEl.src = disappointVideo;
-      videoEl.play().catch(() => {});
-      videoEl.onended = () => {
-        popup.classList.add('animate-popup-out');
-        setTimeout(() => popup.remove(), 400);
+    // Start disappointed-out
+    video.src = `../assets/ReminderVideos/Character${charNum}/disappointed-out.webm`;
+    video.load();
+    video.play().then(() => {
+      if (isKeyed) startRendering();
+
+      const destX = -560 - originX;
+      const targetEl = getActiveElement();
+
+      const handleDisappointTimeupdate = () => {
+        if (selected === 'character6' && !movement && video.currentTime >= 5.5) {
+          const dur = Math.max(100, (video.duration - video.currentTime + 0.45) * 1000);
+          movement = targetEl.animate([
+            { transform: 'translateX(0)' },
+            { transform: `translateX(${destX}px)` }
+          ], { duration: dur, easing: 'ease-in', fill: 'forwards' });
+        } else if (selected === 'character7' && !movement && video.currentTime >= 6.2) {
+          const dur = Math.max(100, (video.duration - video.currentTime + 0.45) * 1000);
+          movement = targetEl.animate([
+            { transform: 'translateX(0px)' },
+            { transform: `translateX(${destX}px)` }
+          ], { duration: dur, easing: 'ease-in', fill: 'forwards' });
+        } else if (selected === 'character1' && !movement && video.currentTime >= 7) {
+          const dur = Math.max(100, (video.duration - video.currentTime + 0.45) * 1000);
+          movement = targetEl.animate([
+            { transform: 'translateX(0)' },
+            { transform: `translateX(${destX}px)` }
+          ], { duration: dur, easing: 'ease-in', fill: 'forwards' });
+        }
       };
-    }
 
-    setTimeout(() => {
-      if (document.body.contains(popup)) {
-        popup.classList.add('animate-popup-out');
-        setTimeout(() => popup.remove(), 400);
-      }
-    }, 4500);
+      video.addEventListener('timeupdate', handleDisappointTimeupdate);
+
+      video.onended = async () => {
+        stopRendering();
+        if (movement) await movement.finished.catch(() => {});
+        stage.remove();
+      };
+    }).catch(() => stage.remove());
   });
 }
 
@@ -159,8 +397,8 @@ const api = window.pixelFriend || {
     } else if (act === 'pause') {
       browserPaused = !browserPaused;
       showStatus(browserPaused ? '⏸ Reminders paused' : '▶ Reminders resumed', 'info');
-    } else if (act === 'quit') {
-      showStatus('✕ Vara closed. You can close this tab.', 'info');
+    } else if (act === 'quit' || act === 'close') {
+      showStatus('✕ Vara closed. You can close this tab or minimize.', 'info');
       try { window.close(); } catch {}
     }
   },
@@ -185,7 +423,7 @@ const api = window.pixelFriend || {
     }
     api.getState().then(cb);
   },
-  createShortcut: null
+  createShortcut: () => handleCreateShortcut()
 };
 const $ = id => document.getElementById(id);
 let settings = {
@@ -891,8 +1129,8 @@ async function handleCreateShortcut() {
     const urlBlob = new Blob([urlContent], { type: 'text/plain' });
     triggerBrowserDownload('Vara - 3D Companion.url', urlBlob);
 
-    // B. Also generate 1-Click Windows Desktop Setup Launcher (.bat) that creates true .lnk on Desktop
-    const batContent = `@echo off\r\ntitle Installing Vara 3D Companion Desktop Shortcut\r\necho ========================================================\r\necho        Installing Vara 3D Companion on Desktop\r\necho ========================================================\r\npowershell -NoProfile -Command "$wsh = New-Object -ComObject WScript.Shell; $d = [System.Environment]::GetFolderPath('Desktop'); $lnk = $wsh.CreateShortcut($d + '\\Vara - 3D Companion.lnk'); $lnk.TargetPath = 'cmd.exe'; $lnk.Arguments = '/c start chrome --app=\\"${currentUrl}\\" || start \\"\\" \\"${currentUrl}\\"'; $lnk.Description = 'Vara - 3D Companion & Reminder'; $lnk.Hotkey = 'Ctrl+Alt+V'; $lnk.Save(); Write-Host '[SUCCESS] Vara Desktop Shortcut created on your Desktop!' -ForegroundColor Green;"\r\necho.\r\necho [OK] Vara 3D Companion shortcut added to your Desktop!\r\necho Press Ctrl+Alt+V anytime to launch!\r\ntimeout /t 4\r\n`;
+    // B. Also generate 1-Click Windows Desktop Setup Launcher (.bat) that creates true .lnk on Desktop & Start Menu
+    const batContent = `@echo off\r\ntitle Installing Vara 3D Companion Desktop Shortcut\r\necho ========================================================\r\necho        Installing Vara 3D Companion on Desktop\r\necho ========================================================\r\npowershell -NoProfile -Command "$wsh = New-Object -ComObject WScript.Shell; $d = [System.Environment]::GetFolderPath('Desktop'); $lnk = $wsh.CreateShortcut($d + '\\\\Vara - 3D Companion.lnk'); $lnk.TargetPath = 'cmd.exe'; $lnk.Arguments = '/c start chrome --app=\\"${currentUrl}\\" || start \\"\\" \\"${currentUrl}\\"'; $lnk.Description = 'Vara - 3D Companion & Reminder'; $lnk.Hotkey = 'Ctrl+Alt+V'; $lnk.Save(); $prog = [System.Environment]::GetFolderPath('Programs'); if ($prog) { Copy-Item $lnk.FullName ($prog + '\\\\Vara - 3D Companion.lnk') -Force }; Write-Host '[SUCCESS] Vara Desktop Shortcut created on Desktop and Start Menu!' -ForegroundColor Green;"\r\necho.\r\necho [OK] Vara 3D Companion shortcut added to your Desktop!\r\necho Press Ctrl+Alt+V anytime from anywhere in Windows to launch!\r\ntimeout /t 4\r\n`;
     const batBlob = new Blob([batContent], { type: 'text/plain' });
     setTimeout(() => {
       triggerBrowserDownload('Install-Vara-Desktop.bat', batBlob);
@@ -908,17 +1146,66 @@ async function handleCreateShortcut() {
       });
     }
 
-    showStatus('📥 Downloaded in Chrome! Check your browser downloads.', 'success');
+    showStatus('📥 Desktop launcher downloaded! (Press Ctrl+Alt+V or run .bat)', 'success');
   } catch (err) {
     showStatus('⚠️ Error: ' + err.message, 'error');
   }
 }
 
-// In-window hotkey support
+// In-window hotkey support (Escape, Ctrl+Shift+Space, Ctrl+Shift+V, Ctrl+Alt+V)
 window.addEventListener('keydown', e => {
+  const isInput = ['INPUT', 'TEXTAREA', 'SELECT'].includes(e.target?.tagName);
   if (e.key === 'Escape') {
+    e.preventDefault();
     api.action('close');
+  } else if ((e.ctrlKey || e.metaKey) && e.shiftKey && (e.code === 'Space' || e.key === ' ' || e.keyCode === 32)) {
+    e.preventDefault();
+    api.action('test', {
+      character: settings.reminderCharacter || 'character1',
+      userName: settings.userName || 'Friend',
+      cheerMessage: settings.cheerMessage || 'Keep going! 💙'
+    });
+    showStatus('🎮 3D Companion summoned via shortcut (Ctrl+Shift+Space)!', 'success');
+  } else if ((e.ctrlKey || e.metaKey) && e.shiftKey && (e.key === 'v' || e.key === 'V')) {
+    e.preventDefault();
+    if (screenWelcome && screenWelcome.classList.contains('active')) {
+      goToScreen('setup');
+    } else {
+      goToScreen('welcome');
+    }
+    showStatus('🔀 Switched view via shortcut (Ctrl+Shift+V)!', 'info');
+  } else if ((e.ctrlKey || e.metaKey) && e.altKey && (e.key === 'v' || e.key === 'V')) {
+    e.preventDefault();
+    handleCreateShortcut();
   }
+});
+
+// Clickable Shortcut Buttons & Badges
+$('btnCreateDesktopShortcut')?.addEventListener('click', e => {
+  e.preventDefault();
+  handleCreateShortcut();
+});
+$('shortcutItemDesktop')?.addEventListener('click', e => {
+  e.preventDefault();
+  handleCreateShortcut();
+});
+$('shortcutItemCompanion')?.addEventListener('click', e => {
+  e.preventDefault();
+  api.action('test', {
+    character: settings.reminderCharacter || 'character1',
+    userName: settings.userName || 'Friend',
+    cheerMessage: settings.cheerMessage || 'Keep going! 💙'
+  });
+  showStatus('🎮 3D Companion summoned (Ctrl+Shift+Space)!', 'success');
+});
+$('shortcutItemWindow')?.addEventListener('click', e => {
+  e.preventDefault();
+  if (screenWelcome && screenWelcome.classList.contains('active')) {
+    goToScreen('setup');
+  } else {
+    goToScreen('welcome');
+  }
+  showStatus('🔀 Switched view (Ctrl+Shift+V)!', 'info');
 });
 
 // Prevent right-click context menu (blocks inspect element, save page, etc.)

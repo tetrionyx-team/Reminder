@@ -39,7 +39,7 @@ function createDesktopShortcut() {
   const psScript = `
 $wsh = New-Object -ComObject WScript.Shell
 
-# Create on Desktop
+# 1. Create on Desktop
 $shortcut = $wsh.CreateShortcut('${targetLnk.replace(/'/g, "''")}')
 $shortcut.TargetPath = '${electronExe.replace(/'/g, "''")}'
 $shortcut.Arguments = '.'
@@ -49,7 +49,14 @@ $shortcut.Description = 'Vara - 3D Companion & Reminder'
 $shortcut.Hotkey = 'CTRL+ALT+V'
 $shortcut.Save()
 
-# Also save copy in Downloads folder
+# 2. Also save in Start Menu Programs folder (Windows registers global hotkey Ctrl+Alt+V when placed here!)
+$startMenu = [System.Environment]::GetFolderPath('Programs')
+if ($startMenu -and (Test-Path $startMenu)) {
+  $startLnk = Join-Path $startMenu 'Vara - 3D Companion.lnk'
+  Copy-Item -Path '${targetLnk.replace(/'/g, "''")}' -Destination $startLnk -Force
+}
+
+# 3. Also save copy in Downloads folder
 Copy-Item -Path '${targetLnk.replace(/'/g, "''")}' -Destination '${downloadLnk.replace(/'/g, "''")}' -Force
 Write-Output 'OK'
 `;

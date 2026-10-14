@@ -1,15 +1,42 @@
 {
-  "name": "pixelfriend-windows",
+  "name": "vara-3d-companion",
   "version": "1.0.5",
-  "description": "PixelFriend water reminder for Windows",
-  "author": "PixelFriend",
+  "description": "Vara - 3D Companion and Water Reminder for Windows",
+  "author": "Vara",
   "private": true,
   "main": "src/main.js",
   "scripts": {
     "start": "electron .",
     "shortcut": "node scripts/createShortcut.js",
     "lock": "node scripts/securityManager.js lock",
-    "unlock": "node scripts/securityManager.js unlock"
+    "unlock": "node scripts/securityManager.js unlock",
+    "dist": "electron-builder --win"
+  },
+  "build": {
+    "appId": "com.vara.companion",
+    "productName": "Vara - 3D Companion",
+    "directories": {
+      "output": "dist"
+    },
+    "win": {
+      "target": "nsis",
+      "icon": "assets/icon.ico"
+    },
+    "nsis": {
+      "oneClick": true,
+      "perMachine": false,
+      "allowToChangeInstallationDirectory": false,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "Vara - 3D Companion",
+      "runAfterFinish": true
+    },
+    "files": [
+      "src/**/*",
+      "assets/**/*",
+      "scripts/**/*",
+      "package.json"
+    ]
   },
   "dependencies": {
     "three": "^0.186.1"
@@ -17,6 +44,7 @@
   "devDependencies": {
     "bytenode": "^1.7.0",
     "electron": "^44.7.0",
+    "electron-builder": "^26.15.3",
     "javascript-obfuscator": "^5.9.0"
   }
 }

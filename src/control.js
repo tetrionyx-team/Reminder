@@ -1208,6 +1208,20 @@ $('shortcutItemWindow')?.addEventListener('click', e => {
   showStatus('🔀 Switched view (Ctrl+Shift+V)!', 'info');
 });
 
+// Windows App Download Modal Listeners
+const modalDownload = $('modalDownloadApp');
+$('btnDownloadAppHeader')?.addEventListener('click', e => {
+  e.preventDefault();
+  if (modalDownload) modalDownload.style.display = 'flex';
+});
+$('btnCloseDownloadModal')?.addEventListener('click', e => {
+  e.preventDefault();
+  if (modalDownload) modalDownload.style.display = 'none';
+});
+modalDownload?.addEventListener('click', e => {
+  if (e.target === modalDownload) modalDownload.style.display = 'none';
+});
+
 // Prevent right-click context menu (blocks inspect element, save page, etc.)
 window.addEventListener('contextmenu', e => e.preventDefault());
 

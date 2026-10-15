@@ -4,7 +4,12 @@ const message = document.getElementById('message');
 let messageVersion = 0;
 async function renderMessage(text, response) {
   const version = ++messageVersion;
-  await document.fonts.load('700 40px "PixelFriend Rounded"');
+  try {
+    await Promise.race([
+      document.fonts.load('700 40px "PixelFriend Rounded"'),
+      new Promise(r => setTimeout(r, 200))
+    ]);
+  } catch {}
   if (version !== messageVersion) return;
   const lines = text.split('\n');
   const measuring = document.createElement('canvas').getContext('2d');

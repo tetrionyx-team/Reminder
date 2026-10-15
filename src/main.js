@@ -97,8 +97,12 @@ function present(targetReminder = null) {
   bubble.setBounds({ x: Math.max(work.x, Math.min(work.x + work.width - 480, videoBounds.x + originX + width / 2 - 240)), y: Math.max(work.y, videoBounds.y - bubbleHeight - bubbleGap), width: Math.min(480, work.width), height: bubbleHeight });
   active = true; phase = 'entry';
   sendCharacter('entry');
-  try { character.setAlwaysOnTop(true, 'screen-saver'); } catch {}
+  try { character.setAlwaysOnTop(true, 'screen-saver', 1); } catch {}
+  try { bubble.setAlwaysOnTop(true, 'screen-saver', 2); } catch {}
+  try { character.setVisibleOnAllWorkspaces(true, { visibleOnFullScreen: true }); } catch {}
+  try { bubble.setVisibleOnAllWorkspaces(true, { visibleOnFullScreen: true }); } catch {}
   character.showInactive();
+  character.moveTop();
   update();
 }
 function finish() {
@@ -162,13 +166,26 @@ function handleAction(sender, action, payload) {
     return;
   }
   const cur = currentDisplayedReminder || settings;
-  if (sender === character.webContents && action === 'entry-ready' && phase === 'entry') { phase = 'waiting'; bubble.webContents.send('reminder', { name: (cur.userName || 'Friend').trim() }); bubble.showInactive(); }
+  if (sender === character.webContents && action === 'entry-ready' && phase === 'entry') { 
+    phase = 'waiting'; 
+    try { bubble.setAlwaysOnTop(true, 'screen-saver', 2); } catch {}
+    try { bubble.setVisibleOnAllWorkspaces(true, { visibleOnFullScreen: true }); } catch {}
+    bubble.webContents.send('reminder', { name: (cur.userName || 'Friend').trim() }); 
+    bubble.showInactive(); 
+    bubble.moveTop();
+    try { bubble.setAlwaysOnTop(true, 'screen-saver', 2); } catch {}
+  }
   if (sender === character.webContents && action === 'exit-done' && phase === 'exit') finish();
   if (sender === character.webContents && action === 'video-error' && active) { character.hide(); bubble.hide(); active = false; phase = 'hidden'; engine.schedule(600000); dialog.showErrorBox('Animation could not play', 'Please reinstall PixelFriend or run npm run convert-assets in the source project.'); }
   if (sender === bubble.webContents && phase === 'waiting' && ['drink', 'snooze'].includes(action)) {
     phase = 'response';
     if (action === 'snooze') exit(true);
-    else { bubble.webContents.send('reminder', { response: (cur.cheerMessage || 'Nice! 💙').trim() }); setTimeout(() => { if (active) exit(false); }, 1200); }
+    else { 
+      try { bubble.setAlwaysOnTop(true, 'screen-saver', 2); } catch {}
+      bubble.moveTop();
+      bubble.webContents.send('reminder', { response: (cur.cheerMessage || 'Nice! 💙').trim() }); 
+      setTimeout(() => { if (active) exit(false); }, 1200); 
+    }
   }
 }
 if (!app.requestSingleInstanceLock()) {
@@ -218,6 +235,10 @@ app.whenReady().then(async () => {
   const overlay = { frame: false, transparent: true, alwaysOnTop: true, skipTaskbar: true, resizable: false, maximizable: false, hasShadow: false, show: false, webPreferences: options };
   character = new BrowserWindow({ ...overlay, width: 540, height: 304, focusable: false }); character.setIgnoreMouseEvents(true);
   bubble = new BrowserWindow({ ...overlay, width: 480, height: 144, focusable: false });
+  try { character.setAlwaysOnTop(true, 'screen-saver', 1); } catch {}
+  try { bubble.setAlwaysOnTop(true, 'screen-saver', 2); } catch {}
+  try { character.setVisibleOnAllWorkspaces(true, { visibleOnFullScreen: true }); } catch {}
+  try { bubble.setVisibleOnAllWorkspaces(true, { visibleOnFullScreen: true }); } catch {}
   character.webContents.on('console-message', (e, level, msg, line, src) => console.log('CHAR CONSOLE:', msg, 'at line', line, src));
   bubble.webContents.on('console-message', (e, level, msg, line, src) => console.log('BUBBLE CONSOLE:', msg, 'at line', line, src));
   for (const win of [control, character, bubble]) secure(win);
